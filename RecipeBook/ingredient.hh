@@ -15,13 +15,12 @@ class Ingredient : public Searchable
 public:
     Ingredient(std::string name);
 
-    Ingredient(std::string name, std::string amount);
-
     Ingredient(std::string name, int calories);
 
     virtual ~Ingredient() {};
 
     int getCalories() const;
+    void setCalories(int calories);
 
     std::string getName() const override;
 
@@ -30,7 +29,6 @@ public:
 private:
     std::string name_;
     int calories_;
-    std::string amount_;
 
 };
 

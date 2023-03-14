@@ -34,6 +34,7 @@ public:
             QString defaultName,
             QString placeholder,
             QWidget *parent = nullptr,
+            bool editable = true,
             SearchFunctionInfo searchFunctionInfo = {nullptr, nullptr}
             );
 
@@ -43,12 +44,16 @@ public:
     QString getText() const;
     void setText(QString text);
 
+    void setEditable(bool editable);
+
     // returns the label to a default value
     void returnToDefault();
 private:
     QLabel* label;
     QString defaultText_;
     QString placeholder_;
+
+    bool editable_;
 
     DataHandler* dataHandler_;
     FunctionType searchFunction_;
@@ -70,6 +75,7 @@ protected:
 
     QLineEdit* lineEdit;
     QVBoxLayout* mainLayout;
+
 
 
 

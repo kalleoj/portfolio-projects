@@ -1,14 +1,7 @@
 #include "addrecipetab.hh"
 #include "clickablelabel.hh"
 
-#include <QIcon>
-#include <QLabel>
-#include <QMessageBox>
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QStyle>
-#include <QFileDialog>
-#include <QResource>
+
 
 AddRecipeTab::AddRecipeTab(
         DataHandler* dataHandler,
@@ -19,17 +12,19 @@ AddRecipeTab::AddRecipeTab(
     // register resources file
     QResource::registerResource("./resources.qrc");
 
+    mainLayout_ = new QVBoxLayout(this);
+
     // create layout on top that contains the recipe icon and the editable recipe name
     QHBoxLayout* topLayout = new QHBoxLayout(this);
-    topLayout->setAlignment(Qt::AlignLeft);
-
-    // editable label for the recipe name
-    EditableLabel* recipeNameLabel = createRecipeNameLabel();
-    topLayout->addWidget(recipeNameLabel);
+    //topLayout->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 
     // changeable image for the recipe
     ClickableLabel* imageLabel = createImageLabel();
     topLayout->addWidget(imageLabel);
+
+    // editable label for the recipe name
+    EditableLabel* recipeNameLabel = createRecipeNameLabel();
+    topLayout->addWidget(recipeNameLabel);
 
     // layout where all the added ingredients reside
     ingredientsLayout = new QVBoxLayout(this);
@@ -42,15 +37,14 @@ AddRecipeTab::AddRecipeTab(
     connect(addButton, &QPushButton::pressed, this, &AddRecipeTab::onAddButtonPressed);
 
     // add all the layouts to the main layout
-    mainLayout = new QVBoxLayout(this);
-
-    mainLayout->addLayout(topLayout);
-    mainLayout->addLayout(ingredientsLayout);
-    mainLayout->addLayout(ingredientsLayout);
-    mainLayout->addWidget(addButton);
+    mainLayout_->addLayout(topLayout);
+    mainLayout_->addLayout(ingredientsLayout);
+    mainLayout_->addLayout(inputsLayout);
+    mainLayout_->addWidget(addButton);
 
 
-    setLayout(mainLayout);
+
+    setLayout(mainLayout_);
 
 }
 
@@ -87,7 +81,7 @@ void AddRecipeTab::addIngredientToRecipe()
         new ErrorPopup("Ingredient already added!", this);
         return;
 
-    } else if (!isNumber(calories.toStdString())) {
+    } else if (!isNumber(calories.toStdString()) && calories != NO_VALUE) {
         new ErrorPopup("The amount of calories needs to be numerical!", this);
         return;
 
@@ -97,12 +91,16 @@ void AddRecipeTab::addIngredientToRecipe()
     amountInput->setText("");
     calorieInput->setText("");
 
+    Ingredient* ingredient = dataHandler_->addIngredient(name.toStdString());
+    if (calories != NO_VALUE) {
+        ingredient->setCalories(calories.toInt());
+    }
+
     IngredientDisplay* ingredientProperties = new IngredientDisplay(
-                name,
-                dataHandler_,
-                this,
+                ingredient,
                 amount,
-                calories
+                dataHandler_,
+                this
                 );
 
 
@@ -115,63 +113,86 @@ void AddRecipeTab::addIngredientToRecipe()
 
     ingredients_.insert({name, ingredientProperties});
 
+
+
 }
 
 QHBoxLayout* AddRecipeTab::createIngredientInputs()
 {
-    QHBoxLayout* inputLayout = new QHBoxLayout(this);
+    QVBoxLayout* labelsLayout = new QVBoxLayout();
+    QVBoxLayout* inputsLayout = new QVBoxLayout();
+    QHBoxLayout* nameLayout = new QHBoxLayout();
+    QHBoxLayout* amountLayout = new QHBoxLayout();
+    QHBoxLayout* calorieLayout = new QHBoxLayout();
 
-    // create label and input for the name
-    QVBoxLayout* nameLayout = new QVBoxLayout(this);
+    // create labels for the inputs
+    QLabel* nameLabel = new QLabel("Ingredient name", this);
+    QLabel* amountLabel = new QLabel("Amount", this);
+    QLabel* calorieLabel = new QLabel("Calories per unit (optional)", this);
+
+    // create inputs for the labels
     nameInput = new QLineEdit(this);
     nameInput->setPlaceholderText("Garlic");
-    nameLayout->addWidget(new QLabel("Ingredient name", this));
-    nameLayout->addWidget(nameInput);
-
-    // create label and input for the
-    QVBoxLayout* amountLayout = new QVBoxLayout(this);
     amountInput = new QLineEdit(this);
     amountInput->setPlaceholderText("3 cloves");
-    amountLayout->addWidget(new QLabel("Amount", this));
-    amountLayout->addWidget(amountInput);
-
-    QVBoxLayout* calorieLayout = new QVBoxLayout(this);
     calorieInput = new QLineEdit(this);
     calorieInput->setPlaceholderText("33");
-    calorieLayout->addWidget(new QLabel("Calories per unit (optional)", this));
+
+    // add each label and input to the appropriate layout
+    nameLayout->addWidget(nameInput);
+    amountLayout->addWidget(amountInput);
     calorieLayout->addWidget(calorieInput);
+
+    labelsLayout->addWidget(nameLabel);
+    labelsLayout->addWidget(amountLabel);
+    labelsLayout->addWidget(calorieLabel);
+
+    inputsLayout->addLayout(nameLayout);
+    inputsLayout->addLayout(amountLayout);
+    inputsLayout->addLayout(calorieLayout);
 
     QPushButton* addButton = new QPushButton("Add Ingredient");
     connect(addButton, &QPushButton::pressed, this, &AddRecipeTab::addIngredientToRecipe);
 
-    inputLayout->addLayout(nameLayout);
-    inputLayout->addLayout(amountLayout);
-    inputLayout->addLayout(calorieLayout);
-    inputLayout->addWidget(addButton);
+    // create a layout for the inputs and button
+    QHBoxLayout* mainLayout = new QHBoxLayout();
+    mainLayout->addLayout(labelsLayout);
+    mainLayout->addLayout(inputsLayout);
 
-    return inputLayout;
+    // add the button to the main layout
+    mainLayout->addWidget(addButton);
+
+    return mainLayout;
 
 }
 
 ClickableLabel *AddRecipeTab::createImageLabel()
 {
-    ClickableLabel* imageLabel = new ClickableLabel(this);
-    imageLabel->setPixmap(QPixmap(":/images/pizza.png"));
+    imageLabel_ = new ClickableLabel(this);
+    imageLabel_->setScaledContents(true);
+    imageLabel_->setMaximumSize(50,50);
 
-    connect(imageLabel, &ClickableLabel::clicked, this, [=](){
+    imageLabel_->setPixmap(QPixmap(DEFAULT_RECIPE_ICON_PATH));
+
+    connect(imageLabel_, &ClickableLabel::clicked, this, [=](){
         QString fileName = QFileDialog::getOpenFileName(
                     this,
                     tr("Select Icon File"),
                     QDir::homePath(),
                     tr("Icon files (*.png);")
         );
+
+        if (fileName == "") {
+            return;
+        }
+
         QResource::registerResource(fileName);
 
-        imageLabel->setPixmap(QPixmap(fileName));
+        imageLabel_->setPixmap(QPixmap(fileName));
 
     });
 
-    return imageLabel;
+    return imageLabel_;
 }
 
 EditableLabel* AddRecipeTab::createRecipeNameLabel()
@@ -184,6 +205,7 @@ EditableLabel* AddRecipeTab::createRecipeNameLabel()
                 "Recipe name",
                 "Name your recipe",
                 this,
+                true,
                 info
     );
     connect(recipeNameLabel, &EditableLabel::textEditingFinished, this, [=](QString oldName, QString newName){
@@ -223,6 +245,8 @@ void AddRecipeTab::clearTab()
 {
     // Editable label for the recipe name
     recipeNameLabel->returnToDefault();
+
+    imageLabel_->setPixmap(QPixmap(DEFAULT_RECIPE_ICON_PATH));
     // Inputs for ingredient properties
     nameInput->setText("");
     amountInput->setText("");

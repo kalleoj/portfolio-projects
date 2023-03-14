@@ -103,6 +103,12 @@ public:
      */
     std::vector<Searchable*> searchIngredients(std::string subString) const;
 
+    /**
+     * @brief addIngredient adds a new ingredient by name, if it does not already exist
+     * @param name is the name of the ingredient
+     * @return an ingredient by the name name
+     */
+    Ingredient* addIngredient(std::string name);
 private:
     // separates the line on commas
     std::vector<std::string> parseCSVLine(std::string line) const;

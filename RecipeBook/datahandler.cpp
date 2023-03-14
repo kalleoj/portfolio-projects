@@ -49,31 +49,6 @@ std::map<std::string, Recipe*> DataHandler::loadRecipes()
 
 }
 
-std::map<std::string, Ingredient*> DataHandler::getIngredients() const
-{
-    return allIngredients_;
-}
-
-std::map<std::string, Ingredient*> DataHandler::loadIngredients()
-{
-    // create file if a previous one does not exist
-    std::ofstream outputfile(INGREDIENTS_FILE_PATH);
-    if (!outputfile) {
-        throw std::ofstream::failure("Could not open or create ingredient file: " + INGREDIENTS_FILE_PATH);
-    }
-    outputfile.close();
-
-    std::ifstream file(INGREDIENTS_FILE_PATH);
-    std::string line;
-    while (std::getline(file, line)) {
-        //assert(addRecipe(line));
-    }
-
-    file.close();
-
-    return allIngredients_;
-}
-
 bool DataHandler::recipeExists(std::string name) const
 {
     return allRecipes_.find(name) != allRecipes_.end();
@@ -102,6 +77,31 @@ std::vector<Searchable*> DataHandler::searchRecipes(std::string subString) const
     return recipes;
 }
 
+std::map<std::string, Ingredient*> DataHandler::getIngredients() const
+{
+    return allIngredients_;
+}
+
+std::map<std::string, Ingredient*> DataHandler::loadIngredients()
+{
+    // create file if a previous one does not exist
+    std::ofstream outputfile(INGREDIENTS_FILE_PATH);
+    if (!outputfile) {
+        throw std::ofstream::failure("Could not open or create ingredient file: " + INGREDIENTS_FILE_PATH);
+    }
+    outputfile.close();
+
+    std::ifstream file(INGREDIENTS_FILE_PATH);
+    std::string line;
+    while (std::getline(file, line)) {
+        //assert(addRecipe(line));
+    }
+
+    file.close();
+
+    return allIngredients_;
+}
+
 std::vector<Searchable*> DataHandler::searchIngredients(std::string subString) const
 {
 
@@ -125,6 +125,16 @@ std::vector<Searchable*> DataHandler::searchIngredients(std::string subString) c
 bool DataHandler::ingredientExists(std::string name) const
 {
     return allIngredients_.find(name) != allIngredients_.end();
+}
+
+Ingredient* DataHandler::addIngredient(std::string name) {
+    if (ingredientExists(name)) {
+        return allIngredients_.at(name);
+    }
+
+    Ingredient* ingredient = new Ingredient(name);
+    allIngredients_.insert({name, ingredient});
+    return ingredient;
 }
 
 
@@ -181,19 +191,29 @@ bool DataHandler::addRecipe(std::string line)
 
         std::string ingredientName = recipeData.at(i);
         std::string ingredientAmount = recipeData.at(i+1);
-        std::string ingredientCalories = recipeData.at(i+2);
-        assert(isNumber(ingredientCalories));
+        std::string ingredientCaloriesStr = recipeData.at(i+2);
+        assert(isNumber(ingredientCaloriesStr) || ingredientCaloriesStr == "");
+
+        int ingredientCalories = UNKNOWN_CALORIES;
+        if (ingredientCaloriesStr != "") {
+            ingredientCalories = stoi(ingredientCaloriesStr);
+        }
 
 
         // Add ingredient data to the ingredient list of the recipe
         // and make sure ingredient is in the list of all known ingredients
         if (ingredientExists(ingredientName)) {
-            ingredients.insert({ingredientName, {allIngredients_.at(ingredientName), ingredientAmount}});
+
+            Ingredient* ingredient = allIngredients_.at(ingredientName);
+            ingredient->setCalories(ingredientCalories);
+            ingredients.insert({ingredientName, {ingredient, ingredientAmount}});
+
         } else {
 
             Ingredient* ingredient = new Ingredient(ingredientName, ingredientCalories);
-            ingredients.insert({ingredientName, {ingredient, ingredientAmount}});
             allIngredients_.insert({ingredientName, ingredient});
+            ingredients.insert({ingredientName, {ingredient, ingredientAmount}});
+
         }
     }
 

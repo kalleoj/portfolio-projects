@@ -14,6 +14,17 @@
 #include <QWidget>
 #include <QDebug>
 #include <typeinfo>
+#include <QIcon>
+#include <QLabel>
+#include <QMessageBox>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QStyle>
+#include <QFileDialog>
+#include <QResource>
+#include <string>
+
+const QString DEFAULT_RECIPE_ICON_PATH= ":/images/pizza.png";
 
 /**
  * @brief The AddRecipeTab class represents a tab that the user uses to fill in recipe details
@@ -46,6 +57,9 @@ private:
     // Editable label for the recipe name
     EditableLabel* recipeNameLabel;
 
+    // changeable icon for the image
+    ClickableLabel* imageLabel_;
+
     // handler for adding, retrieving, loading and saving data
     DataHandler* dataHandler_;
 
@@ -55,7 +69,7 @@ private:
     QLineEdit* calorieInput;
 
     // main layout
-    QVBoxLayout* mainLayout;
+    QVBoxLayout* mainLayout_;
 
     // layout where all the ingredients are
     QVBoxLayout* ingredientsLayout;

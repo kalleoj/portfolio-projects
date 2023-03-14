@@ -4,15 +4,16 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-EditableLabel::EditableLabel(
-        QString defaultName,
+EditableLabel::EditableLabel(QString defaultText,
         QString placeholder,
         QWidget *parent,
+        bool editable,
         SearchFunctionInfo searchFunctionInfo
     ) :
     QWidget(parent),
-    defaultText_(defaultName),
+    defaultText_(defaultText),
     placeholder_(placeholder),
+    editable_(editable),
     dataHandler_(searchFunctionInfo.object),
     searchFunction_(searchFunctionInfo.function)
 {
@@ -20,13 +21,15 @@ EditableLabel::EditableLabel(
 
     // create label with bold text and a pointing hand cursor
     label = new QLabel(this);
-    label->setText(defaultName);
+    label->setText(defaultText_);
     QFont boldFont;
     boldFont.setBold(true);
     label->setFont(boldFont);
-    label->setCursor(Qt::PointingHandCursor);
 
-    connect(this, &EditableLabel::clicked, this, &EditableLabel::startEditing);
+    if (editable_) {
+        label->setCursor(Qt::PointingHandCursor);
+        connect(this, &EditableLabel::clicked, this, &EditableLabel::startEditing);
+    }
 
     lineEdit = new QLineEdit(this);
     lineEdit->setPlaceholderText(placeholder);
@@ -57,6 +60,17 @@ void EditableLabel::setText(QString text)
     label->setText(text);
 }
 
+void EditableLabel::setEditable(bool editable)
+{
+    editable_ = editable;
+
+    if (editable_) {
+        label->setCursor(Qt::PointingHandCursor);
+    } else {
+        label->setCursor(Qt::UpArrowCursor);
+    }
+}
+
 void EditableLabel::returnToDefault() {
     label->setText(defaultText_);
     lineEdit->setText("");
@@ -66,6 +80,10 @@ void EditableLabel::returnToDefault() {
 
 void EditableLabel::startEditing()
 {
+    if (!editable_) {
+        return;
+    }
+
     label->hide();
     lineEdit->show();
 

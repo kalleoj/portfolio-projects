@@ -14,11 +14,11 @@ class IngredientDisplay : public QWidget
     Q_OBJECT
 public:
     explicit IngredientDisplay(
-            QString name,
+            Ingredient* ingredient,
+            QString amount,
             DataHandler* dataHandler,
-            QWidget *parent = nullptr,
-            QString amount = NO_VALUE,
-            QString calories = NO_VALUE
+            bool editable = true,
+            QWidget *parent = nullptr
     );
 
     QString getIngredientInfo() const;
@@ -26,11 +26,13 @@ public:
 
 private:
 
+    bool editable_;
+
     QHBoxLayout* layout_;
 
-    void createNameLabel(QString name);
-    void createAmountLabel(QString amount);
-    void createCalorieLabel(QString amount);
+    void createNameLabel(Ingredient *name, bool editable);
+    void createAmountLabel(QString amount, bool editable);
+    void createCalorieLabel(int amount, bool editable);
     void createDeleteButton();
 
     EditableLabel* nameLabel_;

@@ -1,26 +1,25 @@
 #include "editablelabel.hh"
+#include "errorpopup.hh"
 #include "ingredientdisplay.hh"
 
 #include <QHBoxLayout>
 #include <QPushButton>
 
-IngredientDisplay::IngredientDisplay(
-        QString name,
-        DataHandler* dataHandler,
-        QWidget *parent,
+IngredientDisplay::IngredientDisplay(Ingredient *ingredient,
         QString amount,
-        QString calories
-        ) : QWidget(parent), dataHandler_(dataHandler)
+        DataHandler* dataHandler,
+        bool editable,
+        QWidget *parent
+        ) : QWidget(parent), editable_(editable), dataHandler_(dataHandler)
 {
-    assert(isNumber(calories.toStdString()) or calories == NO_VALUE);
 
     layout_ = new QHBoxLayout(this);
 
-    createNameLabel(name);
+    createNameLabel(ingredient, editable_);
 
-    createAmountLabel(amount);
+    createAmountLabel(amount, editable_);
 
-    createCalorieLabel(calories);
+    createCalorieLabel(ingredient->getCalories(), editable_);
 
     createDeleteButton();
 }
@@ -35,40 +34,63 @@ QString IngredientDisplay::getIngredientInfo() const
     return nameLabel_->getText() + "," + amountLabel_->getText() + "," + calorieLabel_->getText();
 }
 
-void IngredientDisplay::createNameLabel(QString name)
+void IngredientDisplay::createNameLabel(Ingredient* ingredient, bool editable)
 {
     SearchFunctionInfo info = {
         dataHandler_,
         &DataHandler::searchIngredients
     };
     nameLabel_ = new EditableLabel(
-                name,
+                QString::fromStdString(ingredient->getName()),
                 "Rename ingredient",
                 this,
+                editable,
                 info
                 );
+    connect(
+        nameLabel_,
+        &EditableLabel::textEditingFinished,
+        this,
+        [=](QString oldName, QString newName){
+            if (dataHandler_->ingredientExists(newName.toStdString())) {
+                new ErrorPopup("Such an ingredient already exists!",this);
+                nameLabel_->setText(oldName);
+            }
+        }
+    );
     layout_->addWidget(nameLabel_);
 }
 
-void IngredientDisplay::createAmountLabel(QString amount)
+void IngredientDisplay::createAmountLabel(QString amount, bool editable)
 {
     QString placeholder = "Redefine amount";
     if (amount == NO_VALUE) {
         placeholder = "Define amount";
     }
-    amountLabel_ = new EditableLabel(amount, placeholder, this);
+    amountLabel_ = new EditableLabel(
+                amount,
+                placeholder,
+                this,
+                editable
+    );
     layout_->addWidget(amountLabel_);
 }
 
-void IngredientDisplay::createCalorieLabel(QString calories)
+void IngredientDisplay::createCalorieLabel(int calories, bool editable)
 {
     QString placeholder = "Redefine calories";
-    if (calories == NO_VALUE) {
+    if (calories == UNKNOWN_CALORIES) {
         placeholder = "Define calories";
     }
-    calorieLabel_ = new EditableLabel(calories, placeholder, this);
+    calorieLabel_ = new EditableLabel(
+                QString(calories),
+                placeholder,
+                this,
+                editable
+    );
     connect(calorieLabel_, &EditableLabel::textEditingFinished, this, [=](QString oldCalories, QString newCalories){
         if (newCalories != "" and !isNumber(newCalories.toStdString())) {
+            new ErrorPopup("The amount of calories needs to be numerical!",this);
             calorieLabel_->setText(oldCalories);
         }
     });
