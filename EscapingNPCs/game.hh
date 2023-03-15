@@ -3,12 +3,12 @@
 
 #include "point.hh"
 #include "spacecube.hh"
-#include "movementerrorexception.hh"
 #include "avatar.hh"
 
 #include <vector>
 #include <assert.h>
 #include <algorithm>
+#include <typeinfo>
 
 using namespace std;
 
@@ -41,12 +41,28 @@ public:
     template<typename T>
     Avatar* createAvatar(unsigned int x, unsigned int y, unsigned int z);
 
-    pair<Point, bool> find(SpaceCube *otherCube,
+    pair<Point, bool> find(SpaceCube *spaceCube,
             Point startingLocation = Point(0,0,0),
             unsigned int maxRange = numeric_limits<int>::max()
     );
 
-    Space getAdjacentCubes(unsigned int x, unsigned int y, unsigned int z);
+
+    bool isWithinBoundaries(int x, int y, int z) const;
+
+    class OutOfBoundsException : public CustomException {
+        public:
+            OutOfBoundsException(const string& message) : CustomException(message) {}
+    };
+
+    class NullObjectException : public CustomException {
+        public:
+            NullObjectException(const string& message) : CustomException(message) {}
+    };
+
+    class MovementException : public CustomException {
+        public:
+            MovementException(const string& message) : CustomException(message) {}
+    };
 
 private:
     Space grid_;
@@ -60,6 +76,8 @@ private:
     vector<GameObject*> allGameObjects_;
 
     void connectGrid();
+
+    Space getAdjacentCubes(unsigned int x, unsigned int y, unsigned int z);
 
     template<typename T>
     Plane createPlane(unsigned int width, unsigned int length);

@@ -12,12 +12,12 @@ INCLUDEPATH += C:\Users\Omistaja\eigen-3.4.0\eigen-3.4.0
 
 SOURCES += \
     avatar.cpp \
+    customexception.cpp \
     game.cpp \
     gameobject.cpp \
     learningagent.cpp \
     main.cpp \
     mainwindow.cpp \
-    movementerrorexception.cpp \
     point.cpp \
     solidgameobject.cpp \
     spacecube.cpp
@@ -25,11 +25,11 @@ SOURCES += \
 HEADERS += \
     SurroundingsAware.hh \
     avatar.hh \
+    customexception.hh \
     game.hh \
     gameobject.hh \
     learningagent.hh \
     mainwindow.hh \
-    movementerrorexception.hh \
     point.hh \
     solidgameobject.hh \
     spacecube.hh

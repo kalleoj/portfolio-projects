@@ -1,4 +1,5 @@
 #include "game.hh"
+#include "customexception.hh"
 
 
 Game::Game(unsigned int width, unsigned int length, unsigned int height) :
@@ -21,13 +22,12 @@ Game::Game(unsigned int width, unsigned int length, unsigned int height) :
 
     connectGrid();
 
-
-    hero_ = new Avatar();
-    hero_->setSurroundings(getAdjacentCubes(2, length-2, 0));
+    SpaceCube* heroLocation = getCubeAt(2, length_-2, 0);
+    hero_ = new Avatar(heroLocation);
     allGameObjects_.push_back(hero_);
 
-    enemy_ = new Avatar();
-    enemy_->setSurroundings(getAdjacentCubes(2, length-2, 0));
+    SpaceCube* enemyLocation = getCubeAt(width_-2, 2, 0);
+    enemy_ = new Avatar(enemyLocation);
     allGameObjects_.push_back(enemy_);
 
 }
@@ -49,34 +49,37 @@ Game::~Game()
 
 bool Game::moveTo(GameObject* object, SpaceCube* from, SpaceCube* to, bool selfCall)
 {
-    assert (object != nullptr && from != nullptr && to != nullptr);
+    if (object == nullptr) {
+        throw new NullObjectException("Attempt to move object that does not exist.");
+    }
+
+    if (to == nullptr) {
+        string message = "Attempt to move " + string(typeid(object).name()) + " to a location";
+        throw new MovementException(message);
+    }
 
     if (to->add(object)) {
 
-        if (from->remove(object)) {
-
-            // reset surroundings
+        if (from == nullptr || from->remove(object)) {
+            // set location if avatar
             Avatar* avatar = dynamic_cast<Avatar*>(object);
             if (avatar != nullptr) {
-                avatar->setSurroundings(to->getNeighbors());
+                avatar->setLocation(to);
             }
 
             return true;
 
         } else {
-
-            // if not function calling itself, try to move object back
+            // try to move object back, selfcall is there to avoid a cycle of moving back and fourth
             if (!selfCall) {
                 if(!moveTo(object, to, from, true)) {
-                    throw new MovementErrorException(
+                    throw new MovementException(
                                 "Moving from one to another failed and cannot revert"
                     );
                 }
                 return false;
             }
-            int maxSelfCalls = 3;
-            if (selfCall < maxSelfCalls) {
-            }
+
             return false;
         }
     }
@@ -86,9 +89,9 @@ bool Game::moveTo(GameObject* object, SpaceCube* from, SpaceCube* to, bool selfC
 
 bool Game::moveAvatarInDirection(Avatar* avatar, Direction direction)
 {
-    SpaceCube* currentSpot = avatar->getCurrentSpaceCube();
+    SpaceCube* currentSpot = avatar->getLocation();
 
-    SpaceCube* spot = avatar->getNeighboringSpaceCube(
+    SpaceCube* spot = currentSpot->getNeighbor(
               DIRECTIONS.at(direction)
     );
 
@@ -102,46 +105,6 @@ bool Game::moveAvatarInDirection(Avatar* avatar, Direction direction)
 
     return false;
 
-}
-
-
-pair<Point, bool> Game::find(SpaceCube* otherCube, Point startingLocation, unsigned int maxRange)
-{
-    assert(otherCube != nullptr);
-
-    if (getCubeAt(startingLocation) == otherCube) {
-        return {startingLocation, true};
-    }
-
-    unsigned int searchRange = 1;
-
-    while (searchRange <= maxRange) {
-        for (int z : {startingLocation.getZ()-searchRange, startingLocation.getZ()+searchRange}) {
-            if (z < 0 || z > (int) height_) {
-                continue;
-            }
-
-            for (int y : {startingLocation.getY()-searchRange, startingLocation.getY()+searchRange}) {
-                if (y < 0 || y > (int) length_) {
-                    continue;
-                }
-
-                for (int x : {startingLocation.getX()-searchRange, startingLocation.getX()+searchRange}) {
-                    if (x < 0 || x > (int) width_) {
-                        continue;
-                    }
-
-                    if (getCubeAt(x,y,z) == otherCube) {
-                        return {Point(x,y,z), true};
-                    }
-                }
-            }
-        }
-
-        searchRange += 1;
-    }
-
-    return {Point(), false};
 }
 
 Space Game::getAdjacentCubes(unsigned int centerX, unsigned int centerY, unsigned int centerZ)
@@ -191,8 +154,25 @@ void Game::connectGrid()
     }
 }
 
+bool Game::isWithinBoundaries(int x, int y, int z) const {
+
+    if (x >= (int) width_ || y >= (int) length_ || z >= (int) height_) {
+        return false;
+    }
+
+    if (x < 0 || y < 0 || z < 0) {
+        return false;
+    }
+
+    return true;
+}
+
 SpaceCube* Game::getCubeAt(unsigned int x, unsigned int y, unsigned int z) const
 {
+    if (!isWithinBoundaries(x, y, z)) {
+        throw new OutOfBoundsException("Attempt to access cube outside of boundaries");
+    }
+
     return grid_.at(z).at(y).at(x);
 }
 
@@ -213,7 +193,7 @@ Plane Game::createPlane(unsigned int width, unsigned int length)
 
             allGameObjects_.push_back(gameObject);
             if (!cube->add(gameObject)) {
-                throw new MovementErrorException("Not really this type of exception but this will do for now.");
+                throw new MovementException("Not really this type of exception but this will do for now.");
             }
             column.push_back(cube);
         }

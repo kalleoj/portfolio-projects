@@ -1,32 +1,19 @@
 #include "avatar.hh"
+#include "customexception.hh"
 
 #include <assert.h>
 
-Avatar::Avatar() : SolidGameObject(), SurroundingsAware()
+Avatar::Avatar(SpaceCube* location) : SolidGameObject(), SurroundingsAware(), location_(location)
 {
 
 }
 
-void Avatar::setSurroundings(Space adjacentSpace)
+SpaceCube *Avatar::getLocation() const
 {
-    adjacentSpace_ = adjacentSpace;
+    return location_;
 }
 
-Space Avatar::getSurroundings() const
+void Avatar::setLocation(SpaceCube* location)
 {
-    return adjacentSpace_;
-}
-
-SpaceCube* Avatar::getNeighboringSpaceCube(Point direction)
-{
-    SpaceCube* cube = adjacentSpace_
-            .at(direction.getX())
-            .at(direction.getY())
-            .at(direction.getZ());
-}
-
-SpaceCube* Avatar::getCurrentSpaceCube() {
-    SpaceCube* cube = getNeighboringSpaceCube(Point(1,1,1));
-    assert(cube != nullptr);
-    return cube;
+    location_ = location;
 }

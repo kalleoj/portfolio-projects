@@ -7,15 +7,12 @@
 class Avatar : public SolidGameObject, public SurroundingsAware
 {
 public:
-    Avatar();
+    Avatar(SpaceCube* location);
+    SpaceCube* getLocation() const override;
+    void setLocation(SpaceCube*location) override;
 
-    void setSurroundings(Space adjacentSpace) override;
-    Space getSurroundings() const override;
-    SpaceCube* getNeighboringSpaceCube(Point direction) override;
-
-    SpaceCube *getCurrentSpaceCube();
 private:
-    Space adjacentSpace_;
+    SpaceCube* location_;
 };
 
 #endif // AVATAR_HH
