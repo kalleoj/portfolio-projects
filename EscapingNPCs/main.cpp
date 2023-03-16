@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         std::cout << "State " << state << ": Best action is " << best_action << std::endl;
     */
     QApplication a(argc, argv);
-    MainWindow w;
+    MainWindow w = MainWindow();
     w.show();
     return a.exec();
 }

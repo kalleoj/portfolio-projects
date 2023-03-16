@@ -5,7 +5,7 @@
 
 Avatar::Avatar(SpaceCube* location) : SolidGameObject(), SurroundingsAware(), location_(location)
 {
-
+    location->add(this);
 }
 
 SpaceCube *Avatar::getLocation() const

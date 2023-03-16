@@ -1,57 +1,71 @@
 #include "spacecube.hh"
 
-SpaceCube::SpaceCube()
+
+SpaceCube::SpaceCube() : occupants_({}), neighbors_({})
 {
 
 }
 
 
 bool SpaceCube::add(GameObject* object) {
+    qDebug() << "add";
+
     // check if there is a solid gameobject in the space
     for (auto occupant : occupants_) {
-        if (typeid(occupant) == typeid(SolidGameObject)) {
+        if (dynamic_cast<SolidGameObject*>(occupant) != nullptr) {
+            qDebug() << "endof add";
+
             return false;
         }
     }
 
-    occupants_.push_back(object);
+    occupants_.insert(object);
+
+    qDebug() << "endof add";
     return true;
 }
 
 bool SpaceCube::remove(GameObject* object) {
+    qDebug() << "remove";
+
     unsigned int oldSize = occupants_.size();
 
-    occupants_.erase(
-        std::remove(occupants_.begin(), occupants_.end(), object),
-        occupants_.end()
-    );
+    occupants_.erase(object);
 
     if (occupants_.size() == oldSize) {
+        qDebug() << "endof remove";
         return false;
     }
 
+    qDebug() << "endof remove";
     return true;
 }
 
-vector<GameObject *> SpaceCube::getOccupants() const
+set<GameObject *> SpaceCube::getOccupants() const
 {
+    qDebug() << "getOccupants";
+    qDebug() << "endof getOccupants";
+
     return occupants_;
 }
 
-bool SpaceCube::setOccupants(vector<GameObject *> newOccupants)
+bool SpaceCube::setOccupants(set<GameObject *> newOccupants)
 {
-    vector<GameObject*> oldOccupants = occupants_;
+    qDebug() << "setOccupants";
+    set<GameObject*> oldOccupants = occupants_;
 
     occupants_ = {};
-    for (GameObject* occupant : newOccupants) {
+    for (auto occupant : newOccupants) {
         if(!add(occupant)) {
 
             // if add is unsuccessful, revert to old occupants
             occupants_ = oldOccupants;
+            qDebug() << "endof setOccupants";
             return false;
         }
     }
 
+    qDebug() << "endof setOccupants";
     return true;
 
 }

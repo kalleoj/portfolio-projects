@@ -10,7 +10,6 @@ class GameObject
 public:
     GameObject();
     virtual ~GameObject();
-    virtual string whatIsThis();
 
 private:
 

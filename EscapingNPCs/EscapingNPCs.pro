@@ -1,4 +1,5 @@
 QT       += core gui
+QT      += opengl
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,8 +14,11 @@ INCLUDEPATH += C:\Users\Omistaja\eigen-3.4.0\eigen-3.4.0
 SOURCES += \
     avatar.cpp \
     customexception.cpp \
+    flyingavatar.cpp \
     game.cpp \
+    gamedisplay.cpp \
     gameobject.cpp \
+    grass.cpp \
     learningagent.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -26,8 +30,11 @@ HEADERS += \
     SurroundingsAware.hh \
     avatar.hh \
     customexception.hh \
+    flyingavatar.hh \
     game.hh \
+    gamedisplay.hh \
     gameobject.hh \
+    grass.hh \
     learningagent.hh \
     mainwindow.hh \
     point.hh \

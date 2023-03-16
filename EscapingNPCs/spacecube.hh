@@ -8,6 +8,9 @@
 #include <vector>
 #include <algorithm>
 #include <typeindex>
+#include <set>
+#include <qDebug>
+
 
 using namespace std;
 
@@ -28,8 +31,8 @@ public:
     bool add(GameObject* object);
     bool remove(GameObject* object);
 
-    vector<GameObject*> getOccupants() const;
-    bool setOccupants(vector<GameObject*> newOccupants);
+    set<GameObject *> getOccupants() const;
+    bool setOccupants(set<GameObject *> newOccupants);
 
     Space getNeighbors() const;
     void setNeighbors(Space newNeighbors);
@@ -47,7 +50,7 @@ public:
     };
 
 protected:
-    vector<GameObject*> occupants_;
+    set<GameObject*> occupants_;
     Space neighbors_;
 
 
